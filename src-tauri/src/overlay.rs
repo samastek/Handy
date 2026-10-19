@@ -493,6 +493,7 @@ fn show_overlay_state(app_handle: &AppHandle, state: &str) {
     if settings.overlay_style == OverlayStyle::None {
         return;
     }
+    LANGUAGE_MENU_OPEN.store(state == "language", Ordering::SeqCst);
 
     // The rest queries monitors and the cursor and mutates window geometry. On
     // Linux the monitor/cursor lookups hit GDK/Xlib on the process's shared X11
@@ -630,6 +631,19 @@ pub fn show_processing_overlay(app_handle: &AppHandle) {
     show_overlay_state(app_handle, "processing");
 }
 
+/// Set while the language menu is showing, so the cancelled pipeline's late
+/// `hide_recording_overlay` calls can't take the menu down under the user.
+static LANGUAGE_MENU_OPEN: AtomicBool = AtomicBool::new(false);
+
+pub fn show_language_menu(app_handle: &AppHandle) {
+    show_overlay_state(app_handle, "language");
+}
+
+pub fn close_language_menu(app_handle: &AppHandle) {
+    LANGUAGE_MENU_OPEN.store(false, Ordering::SeqCst);
+    hide_recording_overlay(app_handle);
+}
+
 /// Updates the overlay window position based on current settings
 pub fn update_overlay_position(app_handle: &AppHandle) {
     // Positioning queries monitors/cursor (GDK/Xlib on Linux) and moves the
@@ -689,6 +703,9 @@ static OVERLAY_SHOW_GENERATION: AtomicU64 = AtomicU64::new(0);
 pub fn hide_recording_overlay(app_handle: &AppHandle) {
     // Always hide the overlay regardless of settings - if setting was changed while recording,
     // we still want to hide it properly
+    if LANGUAGE_MENU_OPEN.load(Ordering::SeqCst) {
+        return;
+    }
     if let Some(overlay_window) = app_handle.get_webview_window("recording_overlay") {
         // Snapshot before doing anything observable, so any show that lands
         // after this point invalidates the delayed hide below.

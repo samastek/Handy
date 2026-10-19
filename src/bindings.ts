@@ -546,6 +546,9 @@ async showMainWindowCommand() : Promise<Result<null, string>> {
 async cancelOperation() : Promise<void> {
     await TAURI_INVOKE("cancel_operation");
 },
+async closeLanguageMenu(language: string | null) : Promise<void> {
+    await TAURI_INVOKE("close_language_menu", { language });
+},
 async isPortable() : Promise<boolean> {
     return await TAURI_INVOKE("is_portable");
 },

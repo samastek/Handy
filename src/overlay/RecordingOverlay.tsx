@@ -13,7 +13,15 @@ import i18n, { syncLanguageFromSettings } from "@/i18n";
 import type { ModelStateEvent } from "@/lib/types/events";
 import { getLanguageDirection } from "@/lib/utils/rtl";
 
-type OverlayState = "recording" | "streaming" | "transcribing" | "processing";
+type OverlayState =
+  | "recording"
+  | "streaming"
+  | "transcribing"
+  | "processing"
+  | "language";
+
+const MENU_LANGUAGES = ["auto", "en", "de", "ar"];
+const LANGUAGE_MENU_TIMEOUT_MS = 5000;
 
 // Number of reactive bars in the waveform (the simple, smoothed style shared by
 // every overlay form). Mic levels arrive as 16 FFT buckets; we take the first N.
@@ -61,6 +69,7 @@ const RecordingOverlay: React.FC = () => {
   // True once live text overflows the cap. A top overlay fades its top edge only
   // while overflowing, so the resting first line stays crisp flush under the pill.
   const [overflowing, setOverflowing] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState("auto");
 
   const smoothedLevelsRef = useRef<number[]>(Array(16).fill(0));
   // Live-text scroll-back: the text region "sticks" to the newest line while the
@@ -93,6 +102,7 @@ const RecordingOverlay: React.FC = () => {
             setPosition(
               settings.data.overlay_position === "top" ? "top" : "bottom",
             );
+            setSelectedLanguage(settings.data.selected_language ?? "auto");
           }
         } catch {
           // Keep the previous/default placement if settings can't be read.
@@ -210,6 +220,15 @@ const RecordingOverlay: React.FC = () => {
     pinnedRef.current = true;
     setOverflowing(false);
   }, [session]);
+
+  useEffect(() => {
+    if (state !== "language" || !isVisible) return;
+    const id = setTimeout(
+      () => commands.closeLanguageMenu(null),
+      LANGUAGE_MENU_TIMEOUT_MS,
+    );
+    return () => clearTimeout(id);
+  }, [state, isVisible]);
 
   if (!isVisible) return null;
 
@@ -340,6 +359,26 @@ const RecordingOverlay: React.FC = () => {
                 true,
               )
             : listeningRow(open, true)}
+        </div>
+      </div>
+    );
+  }
+
+  if (state === "language") {
+    return (
+      <div dir={direction} className={`ov-stage ${position} ov-fade show`}>
+        <div className="scard compact slang">
+          {MENU_LANGUAGES.map((code) => (
+            <button
+              key={code}
+              className={code === selectedLanguage ? "active" : ""}
+              onClick={() => commands.closeLanguageMenu(code)}
+            >
+              {code === "auto"
+                ? t("settings.general.language.auto")
+                : code.toUpperCase()}
+            </button>
+          ))}
         </div>
       </div>
     );

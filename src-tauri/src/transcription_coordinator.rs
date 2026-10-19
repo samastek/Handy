@@ -10,6 +10,11 @@ use tauri::{AppHandle, Manager};
 
 const DEBOUNCE: Duration = Duration::from_millis(30);
 const RELEASE_GRACE: Duration = Duration::from_millis(50);
+/// A second tap this soon after a recording started opens the language menu.
+const DOUBLE_TAP_WINDOW: Duration = Duration::from_millis(400);
+/// X11 auto-repeat re-presses within a few ms of its synthetic release; a human
+/// double-tap never does.
+const DOUBLE_TAP_MIN_GAP: Duration = Duration::from_millis(30);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum PttAction {
@@ -165,6 +170,8 @@ enum Effect {
         binding_id: String,
         hotkey_string: String,
     },
+    /// Abandon the just-started recording and let the user pick a language.
+    LanguageMenu,
 }
 
 /// Commands processed sequentially by the coordinator thread.
@@ -222,6 +229,8 @@ struct CoordinatorState {
     last_press: Option<Instant>,
     pending_release: Option<PendingRelease>,
     pending_press: Option<PendingPress>,
+    last_start: Option<(String, Instant)>,
+    last_release: Option<Instant>,
 }
 
 impl CoordinatorState {
@@ -232,7 +241,20 @@ impl CoordinatorState {
             last_press: None,
             pending_release: None,
             pending_press: None,
+            last_start: None,
+            last_release: None,
         }
+    }
+
+    fn is_double_tap(&self, binding_id: &str, now: Instant) -> bool {
+        let Some((id, started_at)) = &self.last_start else {
+            return false;
+        };
+        id == binding_id
+            && now.duration_since(*started_at) <= DOUBLE_TAP_WINDOW
+            && self.last_release.is_some_and(|released_at| {
+                released_at > *started_at && now.duration_since(released_at) >= DOUBLE_TAP_MIN_GAP
+            })
     }
 
     /// Deadline of the deferred release, if any — drives `recv_timeout`.
@@ -248,6 +270,16 @@ impl CoordinatorState {
     }
 
     fn on_input(&mut self, input: InputEvent, now: Instant) -> Option<Effect> {
+        if !input.external {
+            if !input.is_pressed {
+                self.last_release = Some(now);
+            } else if self.is_double_tap(&input.binding_id, now) {
+                self.last_start = None;
+                self.pending_release = None;
+                return Some(Effect::LanguageMenu);
+            }
+        }
+
         let pending_release_binding = self
             .pending_release
             .as_ref()
@@ -509,6 +541,7 @@ impl CoordinatorState {
     ) -> Effect {
         self.stage = Stage::Recording(binding_id.clone());
         self.hold = Some(Hold { pressed_at, locked });
+        self.last_start = Some((binding_id.clone(), pressed_at));
         Effect::Start {
             binding_id,
             hotkey_string,
@@ -681,6 +714,10 @@ fn run_effect(app: &AppHandle, state: &mut CoordinatorState, effect: Effect) {
             binding_id,
             hotkey_string,
         } => stop(app, &binding_id, &hotkey_string),
+        Effect::LanguageMenu => {
+            crate::utils::cancel_current_operation(app);
+            crate::overlay::show_language_menu(app);
+        }
     }
 }
 
@@ -920,6 +957,7 @@ mod tests {
             match effect {
                 Some(Effect::Start { .. }) => starts += 1,
                 Some(Effect::Stop { .. }) => stops += 1,
+                Some(Effect::LanguageMenu) => panic!("auto-repeat opened the language menu"),
                 None => {}
             }
         }
@@ -1001,7 +1039,7 @@ mod tests {
         let effect = state.on_grace_expired();
         assert!(matches!(effect, Some(Effect::Stop { .. })));
 
-        let effect = state.on_input(ptt_input(true), now + Duration::from_millis(200));
+        let effect = state.on_input(ptt_input(true), now + Duration::from_millis(500));
         assert!(effect.is_none(), "busy pipeline must remember, not start");
 
         let effect = state.on_processing_finished();
@@ -1066,7 +1104,7 @@ mod tests {
         let effect = state.on_grace_expired();
         assert!(matches!(effect, Some(Effect::Stop { .. })));
 
-        let effect = state.on_input(ptt_input(true), now + Duration::from_millis(200));
+        let effect = state.on_input(ptt_input(true), now + Duration::from_millis(500));
         assert!(effect.is_none());
 
         state.on_cancel(false);
@@ -1613,5 +1651,65 @@ mod tests {
             "held 400ms since the real key-down: must stop, not lock"
         );
         assert_eq!(state.stage, Stage::Processing);
+    }
+
+    #[test]
+    fn ptt_double_tap_opens_language_menu() {
+        let mut state = CoordinatorState::new();
+        let t0 = Instant::now();
+        assert!(matches!(
+            state.on_input(ptt_input(true), t0),
+            Some(Effect::Start { .. })
+        ));
+        assert!(state.on_input(ptt_input(false), t0 + ms(100)).is_none());
+        assert!(matches!(
+            state.on_grace_expired(),
+            Some(Effect::Stop { .. })
+        ));
+        assert_eq!(
+            state.on_input(ptt_input(true), t0 + ms(250)),
+            Some(Effect::LanguageMenu)
+        );
+    }
+
+    #[test]
+    fn toggle_double_tap_opens_language_menu() {
+        let mut state = CoordinatorState::new();
+        let t0 = Instant::now();
+        let toggle = |is_pressed| input(ShortcutActivation::Toggle, is_pressed);
+        assert!(matches!(
+            state.on_input(toggle(true), t0),
+            Some(Effect::Start { .. })
+        ));
+        assert!(state.on_input(toggle(false), t0 + ms(80)).is_none());
+        assert_eq!(
+            state.on_input(toggle(true), t0 + ms(200)),
+            Some(Effect::LanguageMenu)
+        );
+    }
+
+    #[test]
+    fn toggle_second_press_after_window_stops_recording() {
+        let mut state = CoordinatorState::new();
+        let t0 = Instant::now();
+        let toggle = |is_pressed| input(ShortcutActivation::Toggle, is_pressed);
+        state.on_input(toggle(true), t0);
+        state.on_input(toggle(false), t0 + ms(80));
+        assert!(matches!(
+            state.on_input(toggle(true), t0 + ms(500)),
+            Some(Effect::Stop { .. })
+        ));
+    }
+
+    #[test]
+    fn press_without_release_never_opens_language_menu() {
+        let mut state = CoordinatorState::new();
+        let t0 = Instant::now();
+        let toggle = |is_pressed| input(ShortcutActivation::Toggle, is_pressed);
+        state.on_input(toggle(true), t0);
+        assert!(matches!(
+            state.on_input(toggle(true), t0 + ms(200)),
+            Some(Effect::Stop { .. })
+        ));
     }
 }

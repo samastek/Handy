@@ -18,6 +18,17 @@ pub fn cancel_operation(app: AppHandle) {
 
 #[tauri::command]
 #[specta::specta]
+pub fn close_language_menu(app: AppHandle, language: Option<String>) {
+    if let Some(language) = language {
+        let mut settings = get_settings(&app);
+        settings.selected_language = language;
+        write_settings(&app, settings);
+    }
+    crate::overlay::close_language_menu(&app);
+}
+
+#[tauri::command]
+#[specta::specta]
 pub fn is_portable() -> bool {
     crate::portable::is_portable()
 }
