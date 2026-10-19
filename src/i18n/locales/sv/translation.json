@@ -673,6 +673,7 @@
     "noInputDevice": "Ingen ljudenhet hittades. Anslut en mikrofon eller ett headset och försök igen.",
     "pasteFailedTitle": "Det gick inte att klistra in texten",
     "pasteFailed": "Texten kunde inte klistras in i det aktiva programmet.",
+    "ydotoolNonAscii": "ydotool kan inte skriva vissa tecken i den här texten. Välj en metod för att klistra in från urklipp i de avancerade inställningarna (Ctrl+V eller Ctrl+Shift+V för terminaler).",
     "transcriptionFailedTitle": "Transkriptionen misslyckades"
   },
   "appLanguage": {

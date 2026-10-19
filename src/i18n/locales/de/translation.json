@@ -673,6 +673,7 @@
     "modelLoadFailedUnknown": "unbekanntes Modell",
     "pasteFailedTitle": "Text konnte nicht eingefügt werden",
     "pasteFailed": "Der Text konnte nicht in die aktive Anwendung eingefügt werden.",
+    "ydotoolNonAscii": "ydotool kann einige Zeichen in diesem Text nicht eingeben. Wähle in den erweiterten Einstellungen eine Einfügemethode über die Zwischenablage (Strg+V oder Strg+Umschalt+V für Terminals).",
     "transcriptionFailedTitle": "Transkription fehlgeschlagen"
   },
   "appLanguage": {

@@ -673,6 +673,7 @@
     "modelLoadFailedUnknown": "modello sconosciuto",
     "pasteFailedTitle": "Impossibile incollare il testo",
     "pasteFailed": "Non è stato possibile incollare il testo nell'applicazione attiva.",
+    "ydotoolNonAscii": "ydotool non può digitare alcuni caratteri di questo testo. Nelle impostazioni avanzate, seleziona un metodo di incolla dagli appunti (Ctrl+V, oppure Ctrl+Maiusc+V per i terminali).",
     "transcriptionFailedTitle": "Trascrizione non riuscita"
   },
   "appLanguage": {

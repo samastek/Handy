@@ -673,6 +673,7 @@
     "modelLoadFailedUnknown": "nieznany model",
     "pasteFailedTitle": "Nie udało się wkleić tekstu",
     "pasteFailed": "Nie można było wkleić tekstu do aktywnej aplikacji.",
+    "ydotoolNonAscii": "ydotool nie może wpisać niektórych znaków w tym tekście. W ustawieniach zaawansowanych wybierz wklejanie ze schowka (Ctrl+V lub Ctrl+Shift+V w terminalach).",
     "transcriptionFailedTitle": "Transkrypcja nie powiodła się"
   },
   "appLanguage": {

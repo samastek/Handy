@@ -673,6 +673,7 @@
     "modelLoadFailedUnknown": "невідома модель",
     "pasteFailedTitle": "Не вдалося вставити текст",
     "pasteFailed": "Не вдалося вставити текст до активної програми.",
+    "ydotoolNonAscii": "ydotool не може ввести деякі символи в цьому тексті. У розширених налаштуваннях виберіть вставлення з буфера обміну (Ctrl+V або Ctrl+Shift+V для терміналів).",
     "transcriptionFailedTitle": "Помилка транскрипції"
   },
   "appLanguage": {

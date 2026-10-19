@@ -673,6 +673,7 @@
     "modelLoadFailedUnknown": "نموذج غير معروف",
     "pasteFailedTitle": "فشل لصق النص",
     "pasteFailed": "تعذر لصق النص في التطبيق النشط.",
+    "ydotoolNonAscii": "لا يستطيع ydotool كتابة بعض الأحرف في هذا النص. في الإعدادات المتقدمة، اختر طريقة لصق من الحافظة (Ctrl+V، أو Ctrl+Shift+V للطرفيات).",
     "transcriptionFailedTitle": "فشل التفريغ النصي"
   },
   "appLanguage": {

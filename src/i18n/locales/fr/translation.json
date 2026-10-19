@@ -673,6 +673,7 @@
     "modelLoadFailedUnknown": "modèle inconnu",
     "pasteFailedTitle": "Échec du collage du texte",
     "pasteFailed": "Le texte n'a pas pu être collé dans l'application active.",
+    "ydotoolNonAscii": "ydotool ne peut pas saisir certains caractères de ce texte. Dans les paramètres avancés, sélectionnez une méthode de collage depuis le presse-papiers (Ctrl+V, ou Ctrl+Maj+V pour les terminaux).",
     "transcriptionFailedTitle": "Échec de la transcription"
   },
   "appLanguage": {

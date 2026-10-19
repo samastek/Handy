@@ -14,6 +14,33 @@ use tauri_plugin_clipboard_manager::ClipboardExt;
 #[cfg(target_os = "linux")]
 use crate::utils::{is_gnome_wayland, is_kde_wayland, is_wayland};
 
+#[derive(Clone, Debug, serde::Serialize)]
+#[serde(tag = "error_type", rename_all = "snake_case")]
+pub enum PasteError {
+    YdotoolNonAscii,
+    Other {
+        #[serde(skip)]
+        message: String,
+    },
+}
+
+impl From<String> for PasteError {
+    fn from(message: String) -> Self {
+        Self::Other { message }
+    }
+}
+
+impl std::fmt::Display for PasteError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::YdotoolNonAscii => write!(f, "ydotool cannot type non-ASCII text"),
+            Self::Other { message } => write!(f, "{message}"),
+        }
+    }
+}
+
+impl std::error::Error for PasteError {}
+
 fn with_enigo<T>(
     app_handle: &AppHandle,
     f: impl FnOnce(&mut Enigo) -> Result<T, String>,
@@ -161,7 +188,7 @@ fn try_send_key_combo_linux(paste_method: &PasteMethod) -> Result<bool, String> 
 /// Attempts to type text directly using Linux-native tools.
 /// Returns `Ok(true)` if a native tool handled it, `Ok(false)` to fall back to enigo.
 #[cfg(target_os = "linux")]
-fn try_direct_typing_linux(text: &str, preferred_tool: TypingTool) -> Result<bool, String> {
+fn try_direct_typing_linux(text: &str, preferred_tool: TypingTool) -> Result<bool, PasteError> {
     // If user specified a tool, try only that one
     if preferred_tool != TypingTool::Auto {
         return match preferred_tool {
@@ -193,7 +220,8 @@ fn try_direct_typing_linux(text: &str, preferred_tool: TypingTool) -> Result<boo
             _ => Err(format!(
                 "Typing tool {:?} is not available on this system",
                 preferred_tool
-            )),
+            )
+            .into()),
         };
     }
 
@@ -503,19 +531,28 @@ fn type_text_via_dotool(text: &str) -> Result<(), String> {
     Ok(())
 }
 
+#[cfg(target_os = "linux")]
+fn ydotool_type_command(text: &str) -> Result<Command, PasteError> {
+    // ydotool can report success after truncating or corrupting UTF-8 input.
+    if !text.is_ascii() {
+        return Err(PasteError::YdotoolNonAscii);
+    }
+
+    let mut command = Command::new("ydotool");
+    command.args(["type", "--", text]);
+    Ok(command)
+}
+
 /// Type text directly via ydotool (uinput-based, requires ydotoold daemon).
 #[cfg(target_os = "linux")]
-fn type_text_via_ydotool(text: &str) -> Result<(), String> {
-    let output = Command::new("ydotool")
-        .arg("type")
-        .arg("--")
-        .arg(text)
+fn type_text_via_ydotool(text: &str) -> Result<(), PasteError> {
+    let output = ydotool_type_command(text)?
         .output()
         .map_err(|e| format!("Failed to execute ydotool: {}", e))?;
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(format!("ydotool failed: {}", stderr));
+        return Err(format!("ydotool failed: {}", stderr).into());
     }
 
     Ok(())
@@ -712,7 +749,7 @@ fn paste_direct(
     text: &str,
     app_handle: &AppHandle,
     #[cfg(target_os = "linux")] typing_tool: TypingTool,
-) -> Result<(), String> {
+) -> Result<(), PasteError> {
     #[cfg(target_os = "linux")]
     {
         if try_direct_typing_linux(text, typing_tool)? {
@@ -721,7 +758,7 @@ fn paste_direct(
         info!("Falling back to enigo for direct text input");
     }
 
-    with_enigo(app_handle, |enigo| input::paste_text_direct(enigo, text))
+    with_enigo(app_handle, |enigo| input::paste_text_direct(enigo, text)).map_err(Into::into)
 }
 
 pub(crate) fn send_return_key(enigo: &mut Enigo, key_type: AutoSubmitKey) -> Result<(), String> {
@@ -771,7 +808,7 @@ fn should_send_auto_submit(auto_submit: bool, paste_method: PasteMethod) -> bool
     auto_submit && paste_method != PasteMethod::None
 }
 
-pub fn paste(text: String, app_handle: AppHandle) -> Result<(), String> {
+pub fn paste(text: String, app_handle: AppHandle) -> Result<(), PasteError> {
     let settings = get_settings(&app_handle);
     let paste_method = settings.paste_method;
     let paste_delay_ms = settings.paste_delay_ms;
@@ -841,7 +878,7 @@ pub fn paste(text: String, app_handle: AppHandle) -> Result<(), String> {
                 .external_script_path
                 .as_ref()
                 .filter(|p| !p.is_empty())
-                .ok_or("External script path is not configured")?;
+                .ok_or_else(|| "External script path is not configured".to_string())?;
             paste_via_external_script(&text, script_path)?;
         }
     }
@@ -867,6 +904,60 @@ pub fn paste(text: String, app_handle: AppHandle) -> Result<(), String> {
 mod tests {
     use super::*;
     use std::cell::Cell;
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn ydotool_rejects_non_ascii_before_building_a_command() {
+        for text in [
+            "abc ä tail",
+            "abc ö tail",
+            "abc ü tail",
+            "abc Ä tail",
+            "abc Ö tail",
+            "abc Ü tail",
+            "abc ß tail",
+            "Überraschung",
+            "a\u{0308}",
+            "café",
+            "español",
+            "hello 👋",
+        ] {
+            assert!(
+                matches!(ydotool_type_command(text), Err(PasteError::YdotoolNonAscii)),
+                "{text:?}"
+            );
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn ydotool_preserves_ascii_command_arguments() {
+        for text in [
+            "",
+            "abc tail",
+            "--help",
+            "quotes ' \" $HOME",
+            "line one\nline two",
+        ] {
+            let command = ydotool_type_command(text).unwrap();
+            assert_eq!(command.get_program(), "ydotool");
+            assert_eq!(command.get_args().collect::<Vec<_>>(), ["type", "--", text]);
+        }
+    }
+
+    #[test]
+    fn paste_error_events_exclude_diagnostics() {
+        assert_eq!(
+            serde_json::to_value(PasteError::YdotoolNonAscii).unwrap(),
+            serde_json::json!({ "error_type": "ydotool_non_ascii" })
+        );
+        let error = PasteError::from("private diagnostic".to_string());
+        assert_eq!(error.to_string(), "private diagnostic");
+        assert_eq!(
+            serde_json::to_value(error).unwrap(),
+            serde_json::json!({ "error_type": "other" })
+        );
+    }
 
     #[cfg(target_os = "linux")]
     const YDOTOOL_0_1_8_HELP: &str = r#"

@@ -673,6 +673,7 @@
     "modelLoadFailedUnknown": "不明なモデル",
     "pasteFailedTitle": "テキストの貼り付けに失敗しました",
     "pasteFailed": "アクティブなアプリにテキストを貼り付けられませんでした。",
+    "ydotoolNonAscii": "ydotool はこのテキストの一部の文字を入力できません。詳細設定でクリップボードからの貼り付け方法を選択してください（Ctrl+V、ターミナルでは Ctrl+Shift+V）。",
     "transcriptionFailedTitle": "文字起こしに失敗しました"
   },
   "appLanguage": {

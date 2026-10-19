@@ -673,6 +673,7 @@
     "modelLoadFailedUnknown": "bilinmeyen model",
     "pasteFailedTitle": "Metin yapıştırılamadı",
     "pasteFailed": "Metin etkin uygulamaya yapıştırılamadı.",
+    "ydotoolNonAscii": "ydotool bu metindeki bazı karakterleri yazamıyor. Gelişmiş ayarlardan panodan yapıştırma yöntemini seçin (Ctrl+V veya terminaller için Ctrl+Shift+V).",
     "transcriptionFailedTitle": "Transkripsiyon başarısız oldu"
   },
   "appLanguage": {

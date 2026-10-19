@@ -673,6 +673,7 @@
     "modelLoadFailedUnknown": "неизвестен модел",
     "pasteFailedTitle": "Неуспешно поставяне на текст",
     "pasteFailed": "Текстът не можа да бъде поставен в активното приложение.",
+    "ydotoolNonAscii": "ydotool не може да въведе някои знаци в този текст. В разширените настройки изберете поставяне от клипборда (Ctrl+V или Ctrl+Shift+V за терминали).",
     "transcriptionFailedTitle": "Неуспешна транскрипция"
   },
   "appLanguage": {

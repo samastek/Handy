@@ -673,6 +673,7 @@
     "modelLoadFailedUnknown": "neznámý model",
     "pasteFailedTitle": "Vložení textu se nezdařilo",
     "pasteFailed": "Text nebylo možné vložit do aktivní aplikace.",
+    "ydotoolNonAscii": "ydotool nedokáže napsat některé znaky v tomto textu. V pokročilých nastaveních vyberte vložení ze schránky (Ctrl+V nebo Ctrl+Shift+V pro terminály).",
     "transcriptionFailedTitle": "Přepis selhal"
   },
   "appLanguage": {

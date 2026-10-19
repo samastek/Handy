@@ -673,6 +673,7 @@
     "modelLoadFailedUnknown": "mô hình không xác định",
     "pasteFailedTitle": "Không thể dán văn bản",
     "pasteFailed": "Không thể dán văn bản vào ứng dụng đang hoạt động.",
+    "ydotoolNonAscii": "ydotool không thể nhập một số ký tự trong văn bản này. Trong cài đặt nâng cao, hãy chọn phương thức dán từ bảng nhớ tạm (Ctrl+V hoặc Ctrl+Shift+V cho cửa sổ dòng lệnh).",
     "transcriptionFailedTitle": "Phiên âm thất bại"
   },
   "appLanguage": {

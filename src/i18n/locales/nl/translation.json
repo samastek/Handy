@@ -676,6 +676,7 @@
     "modelLoadFailedUnknown": "onbekend model",
     "pasteFailedTitle": "Tekst plakken mislukt",
     "pasteFailed": "Tekst kon niet worden geplakt in de actieve applicatie.",
+    "ydotoolNonAscii": "ydotool kan sommige tekens in deze tekst niet typen. Selecteer in de geavanceerde instellingen een plakmethode via het klembord (Ctrl+V, of Ctrl+Shift+V voor terminals).",
     "transcriptionFailedTitle": "Transcriptie mislukt"
   },
   "appLanguage": {

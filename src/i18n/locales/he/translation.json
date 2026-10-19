@@ -673,6 +673,7 @@
     "modelLoadFailedUnknown": "מודל לא ידוע",
     "pasteFailedTitle": "ההדבקה נכשלה",
     "pasteFailed": "לא ניתן היה להדביק את הטקסט ביישום הפעיל.",
+    "ydotoolNonAscii": "ydotool אינו יכול להקליד חלק מהתווים בטקסט הזה. בהגדרות המתקדמות, יש לבחור שיטת הדבקה מהלוח (Ctrl+V, או Ctrl+Shift+V למסופים).",
     "transcriptionFailedTitle": "התמלול נכשל"
   },
   "appLanguage": {

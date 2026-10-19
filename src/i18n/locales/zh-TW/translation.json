@@ -673,6 +673,7 @@
     "modelLoadFailedUnknown": "未知模型",
     "pasteFailedTitle": "貼上文字失敗",
     "pasteFailed": "無法將文字貼上至目前作用中的應用程式。",
+    "ydotoolNonAscii": "ydotool 無法輸入此文字中的某些字元。請在進階設定中選擇剪貼簿貼上方式（Ctrl+V，終端機使用 Ctrl+Shift+V）。",
     "transcriptionFailedTitle": "轉錄失敗"
   },
   "appLanguage": {

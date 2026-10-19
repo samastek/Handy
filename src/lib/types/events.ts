@@ -9,3 +9,7 @@ export interface RecordingErrorEvent {
   error_type: string;
   detail?: string;
 }
+
+export interface PasteErrorEvent {
+  error_type: "ydotool_non_ascii" | "other";
+}

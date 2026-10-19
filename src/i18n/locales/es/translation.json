@@ -673,6 +673,7 @@
     "modelLoadFailedUnknown": "modelo desconocido",
     "pasteFailedTitle": "Error al pegar el texto",
     "pasteFailed": "No se pudo pegar el texto en la aplicación activa.",
+    "ydotoolNonAscii": "ydotool no puede escribir algunos caracteres de este texto. En los ajustes avanzados, selecciona un método de pegado desde el portapapeles (Ctrl+V, o Ctrl+Mayús+V para terminales).",
     "transcriptionFailedTitle": "Error de transcripción"
   },
   "appLanguage": {

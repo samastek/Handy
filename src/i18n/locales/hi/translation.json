@@ -676,6 +676,7 @@
     "modelLoadFailedUnknown": "अज्ञात मॉडल",
     "pasteFailedTitle": "टेक्स्ट पेस्ट नहीं हो सका",
     "pasteFailed": "खुले हुए ऐप्लिकेशन में टेक्स्ट पेस्ट नहीं किया जा सका.",
+    "ydotoolNonAscii": "ydotool इस पाठ के कुछ अक्षर टाइप नहीं कर सकता। उन्नत सेटिंग्स में क्लिपबोर्ड से पेस्ट करने की विधि चुनें (Ctrl+V, या टर्मिनल के लिए Ctrl+Shift+V)।",
     "transcriptionFailedTitle": "ट्रांसक्रिप्शन नहीं हो सका"
   },
   "appLanguage": {

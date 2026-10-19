@@ -673,6 +673,7 @@
     "modelLoadFailedUnknown": "modelo desconhecido",
     "pasteFailedTitle": "Falha ao colar o texto",
     "pasteFailed": "Não foi possível colar o texto no aplicativo ativo.",
+    "ydotoolNonAscii": "O ydotool não consegue digitar alguns caracteres deste texto. Nas configurações avançadas, selecione um método de colagem pela área de transferência (Ctrl+V ou Ctrl+Shift+V para terminais).",
     "transcriptionFailedTitle": "Falha na transcrição"
   },
   "appLanguage": {
