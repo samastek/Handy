@@ -18,6 +18,16 @@ pub fn cancel_operation(app: AppHandle) {
 
 #[tauri::command]
 #[specta::specta]
+pub fn close_language_menu(app: AppHandle, language: Option<String>) {
+    if let Some(language) = language {
+        // Also syncs the tray's language submenu and the settings window.
+        let _ = crate::shortcut::change_selected_language_setting(app.clone(), language);
+    }
+    crate::overlay::close_language_menu(&app);
+}
+
+#[tauri::command]
+#[specta::specta]
 pub fn is_portable() -> bool {
     crate::portable::is_portable()
 }

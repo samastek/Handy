@@ -457,3 +457,32 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* language menu (double-tap the shortcut) */
+.scard.slang {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--ov-base-h);
+  padding: 0 6px;
+  width: var(--ov-work-w);
+}
+.slang button {
+  flex: 1;
+  height: 28px;
+  margin: 0 2px;
+  border: 0;
+  border-radius: 14px;
+  font: 600 12px var(--s-font);
+  color: var(--s-muted);
+  background: transparent;
+  cursor: pointer;
+}
+.slang button:hover {
+  background: var(--s-hair);
+  color: var(--color-text);
+}
+.slang button.active {
+  background: var(--s-accent-soft);
+  color: var(--color-text);
+}
