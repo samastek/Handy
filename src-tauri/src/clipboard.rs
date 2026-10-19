@@ -831,14 +831,25 @@ pub fn paste(text: String, app_handle: AppHandle) -> Result<(), PasteError> {
         PasteMethod::None => {
             info!("PasteMethod::None selected - skipping paste action");
         }
-        PasteMethod::Direct => {
-            paste_direct(
-                &text,
-                &app_handle,
-                #[cfg(target_os = "linux")]
-                settings.typing_tool,
-            )?;
-        }
+        PasteMethod::Direct => match paste_direct(
+            &text,
+            &app_handle,
+            #[cfg(target_os = "linux")]
+            settings.typing_tool,
+        ) {
+            // Shift+Insert pastes the clipboard in terminals and regular apps alike.
+            Err(PasteError::YdotoolNonAscii) => {
+                info!("ydotool cannot type non-ASCII text; pasting via clipboard instead");
+                paste_via_clipboard(
+                    &text,
+                    &app_handle,
+                    &PasteMethod::ShiftInsert,
+                    paste_delay_ms,
+                    paste_delay_after_ms,
+                )?
+            }
+            result => result?,
+        },
         PasteMethod::CtrlV | PasteMethod::CtrlShiftV | PasteMethod::ShiftInsert => {
             // Debug-gated receipt-sequenced paste (#502): restore the clipboard
             // after the target actually reads the transcript, not on a timer.
