@@ -109,6 +109,12 @@ jobs:
         with:
           node-version: 22
 
+      - name: Install tools hosted runners preinstall (self-hosted)
+        if: runner.environment == 'self-hosted' && runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake file xdg-utils
+
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -487,9 +493,10 @@ jobs:
           releaseId: ${{ inputs.release-id }}
           assetNamePattern: ${{ steps.patch-release-name.outputs.platform }}
           args: ${{ inputs.build-args }}
-          # Tauri imports a certificate whenever APPLE_CERTIFICATE is set, even
-          # empty, so drop those variables when not signing (ad-hoc signature).
-          tauriScript: ${{ contains(inputs.platform, 'macos') && !inputs.sign-binaries && 'env -u APPLE_CERTIFICATE -u APPLE_CERTIFICATE_PASSWORD bun tauri' || '' }}
+          # Tauri treats a set-but-empty APPLE_* variable as configured (it imports
+          # an empty cert, signs with identity ""), so drop them when not signing
+          # and the config's ad-hoc identity "-" applies.
+          tauriScript: ${{ contains(inputs.platform, 'macos') && !inputs.sign-binaries && 'env -u APPLE_CERTIFICATE -u APPLE_CERTIFICATE_PASSWORD -u APPLE_SIGNING_IDENTITY -u APPLE_ID -u APPLE_ID_PASSWORD -u APPLE_PASSWORD -u APPLE_TEAM_ID bun tauri' || '' }}
 
       # tauri-action uploads release assets before returning. All AppImage
       # filtering therefore happens inside linuxdeploy above; this verifies the
