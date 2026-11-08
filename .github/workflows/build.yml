@@ -101,6 +101,14 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
 
+      # The self-hosted image's system Node (12) is too old for tsc; hosted
+      # runners already ship a current one.
+      - name: Setup Node (self-hosted)
+        if: runner.environment == 'self-hosted'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -479,6 +487,9 @@ jobs:
           releaseId: ${{ inputs.release-id }}
           assetNamePattern: ${{ steps.patch-release-name.outputs.platform }}
           args: ${{ inputs.build-args }}
+          # Tauri imports a certificate whenever APPLE_CERTIFICATE is set, even
+          # empty, so drop those variables when not signing (ad-hoc signature).
+          tauriScript: ${{ contains(inputs.platform, 'macos') && !inputs.sign-binaries && 'env -u APPLE_CERTIFICATE -u APPLE_CERTIFICATE_PASSWORD bun tauri' || '' }}
 
       # tauri-action uploads release assets before returning. All AppImage
       # filtering therefore happens inside linuxdeploy above; this verifies the
